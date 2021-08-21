@@ -8,29 +8,10 @@ const DEFAULT_INDEX: &str = "/index";
 cgi_try_main!(exec);
 
 fn exec(request: Request) -> anyhow::Result<Response> {
-    //  ^ We removed an underscore from _right there_. This is because Rust uses
-    // underscores to tell the compiler "I'm intentionally not using this variable".
-    // And before we were not using `_request`. But now we are. So we rename it to
-    // just plain old `request`.
-
-    // The first thing we need to do is find out what file was requested.
-    // There are a few ways we could get this information... but the easiest one is to
-    // look at the `X-CGI-Path-Info` header that is set by the `cgi` module we are using:
+    // This stuff up here is all the same as last time.
     let path_info = match request.headers().get("X-CGI-Path-Info") {
-        // If you are new to Rust, this part might feel weird. Here's what's going on:
-        // The `match` statement works kind of like a switch statement in other languages.
-        // But we can do some more sophisticated things with it. In this case, we are
-        // saying:
-        // - If our call to get() returns some header value, then that's our path.
-        // - If get() did not find an X-CGI-Path-Info value, then we'll go with the
-        //   default index. (Because the only case where Path Info is not set is
-        //   if the route in `modules.toml` is `/` instead of `/...`)
         Some(header) => {
             let path = header.to_str()?;
-
-            // We have one special case to handle: If the URL goes to the root, we need
-            // to know which file to load. In that case, we use DEFAULT_INDEX, which
-            // we defined at the top of this file.
             if path == "/" {
                 DEFAULT_INDEX
             } else {
@@ -40,21 +21,33 @@ fn exec(request: Request) -> anyhow::Result<Response> {
         None => "/index",
     };
 
-    // This is the easiest way to log a message to our error log:
     eprintln!("Access {}", path_info);
 
-    // So what we're going to do is convert from the inbound path to a file by the same
-    // name that ends with `.md`. So `/index` becomes `/index.md`. Then we look up
-    // on the filesystem. Now, the only files on Wagi's filesystem are the ones in our
-    // volume, which means only the stuff in `content/`. So that makes this method
-    // relatively safe. Nobody can break out of the path and somehow access other files.
-    let markdown_text = std::fs::read_to_string(format!("{}.md", path_info))?;
-
-    // The rest of this is the same as the previous version.
-    let title = "Hello World!";
-    let body = markdown::to_html(&markdown_text);
-    let doc = html_format(title, &body);
-    Ok(html_response(200, doc))
+    // The original 404 problem happened because `read_to_string` could not find a file
+    // to load. So let's refactor some code to say:
+    //   - If read_to_string gets some data, format it and send it back
+    //   - If it fails, send a 404 error with a helpful message.
+    //
+    // Because it's so useful, we're going to use another `match` here.
+    match std::fs::read_to_string(format!("{}.md", path_info)) {
+        Ok(markdown_text) => {
+            // This is basically the same stuff as before.
+            let title = "Hello World!";
+            let body = markdown::to_html(&markdown_text);
+            let doc = html_format(title, &body);
+            Ok(html_response(200, doc))
+        }
+        Err(_) => {
+            // If there is an error reading the file, write back a 404 message.
+            let body = html_format("Not Found", "The requested page was not found.");
+            // Ok() means there was no error during processing, right? So why is this returning
+            // an Ok() instead of an Err()? Because the `Ok()` merely informs the CGI runner
+            // that we have already handled the error. If we returned `Err()`, it would
+            // signal the CGI runner that IT needed to handle the error. And it would do
+            // so by returning a 500.
+            Ok(html_response(404, body))
+        }
+    }
 }
 
 // We used this function last time. And it's useful again here. We changed the function
