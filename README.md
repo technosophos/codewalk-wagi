@@ -1,6 +1,6 @@
 # The Wagi Codewalk
 
-*Don't Panic!* This seemingly empty repo is the beginning of your journey for learning Wagi.
+**Don't Panic!** This seemingly empty repo is the beginning of your journey for learning Wagi.
 Over the course of this codewalk, you will build a simple web application with
 Wagi, Rust, and WebAssembly.
 
