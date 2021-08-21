@@ -1,37 +1,52 @@
-// Our little program is growing up!
-// This time, let's use some stuff from the CGI library.
+// The usual CGI stuff.
+use cgi::{cgi_try_main, html_response, Request, Response};
 
-use cgi::{cgi_try_main, html_response, text_response, Request, Response};
+// This is a built-in tool that helps us display things when passed into the formatter.
+// We're using it in `html_format` so we can avoid doing explicit type conversions.
+use std::fmt::Display;
 
-// This is a neat little macro that builds our main function for us, adding some
-// error handling. I'm all for using tools that make life easier.
-//
-// Basically, it will call our `exec` function. If anything goes wrong, it'll send
-// back 'ye olde HTTP 500 error.
+// No changes here. This is still going to be our top-level entrypoint.
 cgi_try_main!(exec);
 
-// Okay, so this is gonna be our main handler. Every time Wagi gets a new request for
-// http://localhost:3000/, this function will handle it.
-fn exec(_request: Request) -> Result<Response, String> {
-    // This would be equivalent to what we did in the last chapter.
-    // Ok(text_response(200, "Hello, CGI!"))
-
-    // But we're gonna do something a little more interesting.
-    // Instead of returning a plain text document, we'll send back some HTML.
+// Oh look! There's a subtle change right here on `exec`! Now we're using
+// `anyhow` to help us with our error handle. And you know what the nice thing about this
+// is? We don't have to talk about the error handling at all! Because `anyhow` is doing it
+// for us. (Well, to be fair, the `cgi_try_main` function is doing a lot here, too.)
+fn exec(_request: Request) -> anyhow::Result<Response> {
     let title = "Hello World!";
-    let body = "<h1>Hello there</h1><p>It is so nice to see you</p>";
-    let doc = html_format(title, body);
 
-    // This cool little html_response function will take our doc, encode it properly,
-    // add all the necessary HTTP headers, and send it back to Wagi for us.
+    // If you get stuck on file loading, try this:
+    // let markdown_text = "# Hello there\nIt is so nice to see you".to_string();
+
+    // Now we are going to read the content of the `index.md` file into a string.
+    // Remember that `volume` thing we did in `modules.toml`? It mapped all the stuff
+    // in our local `content/` directory into the `/` directory. So for us,
+    // `content/index.md` is available as `/index.md`.
+    let markdown_text = std::fs::read_to_string("/index.md")?;
+    // Hey, see that little '?' at the end of the line?                ^^^
+    // That tells Rust that if it encounters an error reading the file, it should
+    // just bail out of `exec` and return an error to `cgi_try_main`. And then
+    // `cgi_try_main` will capture the error, log it, and send back an error message
+    // to the browser.
+
+    // Using the `markdown` library we installed, we can render the content of `index.md`
+    // into HTML.
+    let body = markdown::to_html(&markdown_text);
+
+    // The markdown generator does not do the basic high-level formatting like the body
+    // and head tags. Fortunately, we already have our HTML formatter that we can
+    // reuse here.
+    let doc = html_format(title, &body);
+
+    // And once again, we send the entire thing back to the browser in an HTTP response.
     Ok(html_response(200, doc))
 }
 
-// This is gonna be our HTML template. It's nothing elaborate.
-// It'll basically inject title and body into an HTML shell so we can skip the boilerplate.
-fn html_format(title: &str, body: &str) -> String {
-    // This is not really the best way of doing template-like things. But it will work
-    // for now.
+// We used this function last time. And it's useful again here. We changed the function
+// signature to make it a little more generic. Specifically, we changed it to say that
+// it doesn't matter what type `title` and `body` are as long as they can be automatically
+// converted into a something we can display. This saves us from having to do manual conversions.
+fn html_format<I: Display>(title: I, body: I) -> String {
     format!(
         r#"
         <html>

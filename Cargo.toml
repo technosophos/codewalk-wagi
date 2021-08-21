@@ -7,3 +7,10 @@ edition = "2018"
 
 [dependencies]
 cgi = "0.6"
+
+# My favorite Rust library of all time. It makes working with errors a lot
+# easier. It's the simple things in life that bring so much pleasure.
+anyhow = "1.0.43"
+
+# The markdown library
+markdown = "0.3"

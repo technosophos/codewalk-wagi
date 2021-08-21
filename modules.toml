@@ -9,3 +9,17 @@ module = "target/wasm32-wasi/debug/codewalk-wagi.wasm"
 # We could get daring and do something like `route = "/hello"`. Then our app would
 # be served at `http://localhost:3000/hello`. But we'll keep it simple.
 route = "/"
+# The 'volumes' directive lets you map a local directory to a directory running inside
+# of Wagi. In this case, when our Wagi script looks in its `/` directory, we want it to
+# see all of the stuff that is in our new `content/` directory.
+#
+# Just to be clear, though, this does NOT make these files available to the web browser.
+# This only makes them available in the filesystem that the Wagi module uses.
+# So why bother with this? Why doesn't Wagi just give access to the local filesystem?
+# This is one of the features of Wagi (and of Wasm32-WASI in general): We want to isolate
+# the local host filesystem from a threat that could come through a Wasm module. Or, to
+# say it differently, the host runtime doesn't necessarily have to trust the Wagi module.
+# Think of all those security holes that have happened because some hacker figured out
+# how to break out of a script or program. That's the kind of thing we are trying to
+# avoid in Wagi.
+volumes = { "/" = "content/" }
