@@ -1,78 +1,46 @@
-# Chapter 6: Handling Errors
+# Chapter 7: Handling Errors
 
-In the last chapter, we ended with a server that could determine from the URL which
-page to load, and could then load and render the Markdown file.
+Popular static site generators like Jekyll, Middleman, and Hugo have made popular the
+concept of embedding "frontmatter" at the top of a Markdown document. This frontmatter
+provides data about the document, and provides it in a format that the system can
+programmatically use.
 
-Accessing `http://localhost:3000/about` would load the `about.md` file. Accessing
-`http://localhost:3000/` would match our special index case and load `index.md`.
-But what if we were to load `http://localhost:3000/hello`?
+In this chapter, we add support for setting some simple frontmatter like `title`.
+It will look like this:
 
-Our code would have tried to load that file. But it would fail to find it. But that
-would result in the program producing an error and exiting. So the client would get this:
-
-```console
-$ curl http://localhost:3000/hello -v
-*   Trying 127.0.0.1...
-* TCP_NODELAY set
-* Connected to localhost (127.0.0.1) port 3000 (#0)
-> GET /hello HTTP/1.1
-> Host: localhost:3000
-> User-Agent: curl/7.64.1
-> Accept: */*
->
-< HTTP/1.1 500 Internal Server Error
-< content-length: 0
-< date: Sat, 21 Aug 2021 22:16:59 GMT
-<
-* Connection #0 to host localhost left intact
-* Closing connection 0
+```markdown
+title = "Some Title"
+---
+This is the document
 ```
 
-A `500 Internal Server Error` with no useful message. In fact, without the `-v` flag for
-`curl`, it would just silently exit.
+Everything above the first `---` is frontmatter. Go ahead and take a look at the files in
+`content/` to see examples.
 
-What we really want to happen is for a miss like that to produce a `404 Not Found` error
-with some user-facing text.
+## More libraries!
 
-That's what this chapter's `src/main.rs` modification is. Go ahead and take a look.
+We need to add a few new libraries to work with frontmatter. Our frontmatter is going to
+follow the [TOML format](https://toml.io/en/). And we need to be able to deserialize
+TOML documents. That's why we added a few libraries to our `Cargo.toml` (which, of course,
+is also written in TOML).
 
-Now go ahead and build and run our new code, and then execute that same `curl` request:
+## Code changes
 
-```console
-$ curl http://localhost:3000/hello -v
-*   Trying 127.0.0.1...
-* TCP_NODELAY set
-* Connected to localhost (127.0.0.1) port 3000 (#0)
-> GET /hello HTTP/1.1
-> Host: localhost:3000
-> User-Agent: curl/7.64.1
-> Accept: */*
->
-< HTTP/1.1 404 Not Found
-< content-length: 209
-< content-type: text/html; charset=utf-8
-< date: Sat, 21 Aug 2021 22:27:26 GMT
-<
+Check out `src/main.rs` for the new code, which splits each Markdown file into two parts:
+the frontmatter and the body.
 
-        <html>
-            <head>
-                <title>Not Found</title>
-            </head>
-            <body>
-                The requested page was not found.
-            </body>
-        </html>
-* Connection #0 to host localhost left intact
-        * Closing connection 0
-```
+- It parses the frontmatter into data that can be used by the program
+- It passes the Markdown into the renderer
+- Then all of that data is used to generate the final HTML page
 
-This time, we correctly get a `404 Not Found` status as well as an HTML page. That's
-much better.
+Once you've looked at these, build and run the server and test it out. You can even
+try out `http://localhost:3000/legacy` and see how it handles a Markdown document that
+is missing its frontmatter.
 
-We've got just a few more rounds of changes, and then we're done. Next up, let's tackle
-fixing the title.
+Hey, know what would be cool to fix now? How about if we add real template support so
+that we can define some prettier HTML?
 
 ## Take Me Forward! Take Me Back!
 
-Head to chapter 4: `git checkout ch7-frontmatter`
+Head to chapter 8: `git checkout ch8-handlebars`
 Return to the intro: `git checkout main`

@@ -1,3 +1,5 @@
+title = "Welcome"
+---
 # Welcome
 
 This is a simple _Markdown_ document. If you would like to learn more about the

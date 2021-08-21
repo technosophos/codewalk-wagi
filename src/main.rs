@@ -1,11 +1,26 @@
 use cgi::{cgi_try_main, html_response, Request, Response};
 use std::fmt::Display;
 
-// If we get a request for "/", which file should we load? The value of this
-// string will be used to determine that.
+// For generating a deserializer
+use serde::Deserialize;
+
+// This is what separates our frontmatter from our Markdown.
+const DOC_SEPERATOR: &str = "\n---\n";
 const DEFAULT_INDEX: &str = "/index";
 
 cgi_try_main!(exec);
+
+// This struct represents our frontmatter. It is decorated with `#[derive(Deserialize)]`
+// to tell the Rust compiler that we want to deserialze our TOML frontmatter. The compiler
+// then automatically generates the deserializer for us.
+#[derive(Deserialize)]
+struct Frontmatter {
+    // Title is required. How do we know? It's type is `String`.
+    title: String,
+    // What if we wanted to add a description field? It would look something
+    // like this. To make it optional, we use `Option<String>`.
+    description: Option<String>,
+}
 
 fn exec(request: Request) -> anyhow::Result<Response> {
     // This stuff up here is all the same as last time.
@@ -23,37 +38,38 @@ fn exec(request: Request) -> anyhow::Result<Response> {
 
     eprintln!("Access {}", path_info);
 
-    // The original 404 problem happened because `read_to_string` could not find a file
-    // to load. So let's refactor some code to say:
-    //   - If read_to_string gets some data, format it and send it back
-    //   - If it fails, send a 404 error with a helpful message.
-    //
-    // Because it's so useful, we're going to use another `match` here.
     match std::fs::read_to_string(format!("{}.md", path_info)) {
-        Ok(markdown_text) => {
-            // This is basically the same stuff as before.
-            let title = "Hello World!";
+        Ok(full_document) => {
+            // This is going to take `full_document`, split it into two objects at
+            // the `---`, and assign those to `toml_text` and `markdown_text`.
+            // But wait... what if we have old Markdown that doesn't have
+            // any frontmatter? Well then... we just fake some TOML data and
+            // pass the entire document into the `markdown_text`.
+            let (toml_text, markdown_text) = full_document
+                .split_once(DOC_SEPERATOR)
+                .unwrap_or(("title = 'Untitled'", &full_document));
+
+            // Now we need to parse the TOML into a `Frontmatter` object.
+            // If the TOML document is malformed, this will send an Err()
+            // result, which will result in a 500 error. That is probably the right
+            // thing to do in this case.
+            let frontmatter: Frontmatter = toml::from_str(toml_text)?;
+
+            // Set the title using the value in the frontmatter.
+            let title = frontmatter.title;
+
+            // From here on out, everything else is the same!
             let body = markdown::to_html(&markdown_text);
-            let doc = html_format(title, &body);
+            let doc = html_format(title, body);
             Ok(html_response(200, doc))
         }
         Err(_) => {
-            // If there is an error reading the file, write back a 404 message.
             let body = html_format("Not Found", "The requested page was not found.");
-            // Ok() means there was no error during processing, right? So why is this returning
-            // an Ok() instead of an Err()? Because the `Ok()` merely informs the CGI runner
-            // that we have already handled the error. If we returned `Err()`, it would
-            // signal the CGI runner that IT needed to handle the error. And it would do
-            // so by returning a 500.
             Ok(html_response(404, body))
         }
     }
 }
 
-// We used this function last time. And it's useful again here. We changed the function
-// signature to make it a little more generic. Specifically, we changed it to say that
-// it doesn't matter what type `title` and `body` are as long as they can be automatically
-// converted into a something we can display. This saves us from having to do manual conversions.
 fn html_format<I: Display>(title: I, body: I) -> String {
     format!(
         r#"
