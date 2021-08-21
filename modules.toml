@@ -1,25 +1,14 @@
-
-# The main thing we do with this file is map WebAssembly modules to HTTP paths.
-# Each mapping is done with a `[[module]]` section
 [[module]]
-# If you ran `cargo build --target wasm32-wasi`, this is where it put the binary.
 module = "target/wasm32-wasi/debug/codewalk-wagi.wasm"
-# We want this to appear at the root of Wagi's webserver.
-# So this tells Wagi that `http://localhost:3000/` should serve our app.
-# We could get daring and do something like `route = "/hello"`. Then our app would
-# be served at `http://localhost:3000/hello`. But we'll keep it simple.
-route = "/"
-# The 'volumes' directive lets you map a local directory to a directory running inside
-# of Wagi. In this case, when our Wagi script looks in its `/` directory, we want it to
-# see all of the stuff that is in our new `content/` directory.
-#
-# Just to be clear, though, this does NOT make these files available to the web browser.
-# This only makes them available in the filesystem that the Wagi module uses.
-# So why bother with this? Why doesn't Wagi just give access to the local filesystem?
-# This is one of the features of Wagi (and of Wasm32-WASI in general): We want to isolate
-# the local host filesystem from a threat that could come through a Wasm module. Or, to
-# say it differently, the host runtime doesn't necessarily have to trust the Wagi module.
-# Think of all those security holes that have happened because some hacker figured out
-# how to break out of a script or program. That's the kind of thing we are trying to
-# avoid in Wagi.
+
+# The route entry controls how Wagi matches incoming URL paths to modules. Before,
+# this was just `/`, which meant that it matched ONLY `http://localhost:3000/`.
+# Adding the `/...` tells it to match `http://localhost:3000/` AND anything underneath
+# that path. So, for example, `http://localhost:3000/about` will match this route now.
+# So will `http://localhost:3000/icky/icky/icky/ptang/zoop/boing`. Doing that route will be
+# left as an exercise for the reader.
+route = "/..."
+
+# Remember: This makes everything in `content/` accessible to us within our Wagi module.
+# So we already have access to `about.md`.
 volumes = { "/" = "content/" }

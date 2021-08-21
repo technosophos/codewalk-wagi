@@ -1,44 +1,59 @@
-// The usual CGI stuff.
 use cgi::{cgi_try_main, html_response, Request, Response};
-
-// This is a built-in tool that helps us display things when passed into the formatter.
-// We're using it in `html_format` so we can avoid doing explicit type conversions.
 use std::fmt::Display;
 
-// No changes here. This is still going to be our top-level entrypoint.
+// If we get a request for "/", which file should we load? The value of this
+// string will be used to determine that.
+const DEFAULT_INDEX: &str = "/index";
+
 cgi_try_main!(exec);
 
-// Oh look! There's a subtle change right here on `exec`! Now we're using
-// `anyhow` to help us with our error handle. And you know what the nice thing about this
-// is? We don't have to talk about the error handling at all! Because `anyhow` is doing it
-// for us. (Well, to be fair, the `cgi_try_main` function is doing a lot here, too.)
-fn exec(_request: Request) -> anyhow::Result<Response> {
+fn exec(request: Request) -> anyhow::Result<Response> {
+    //  ^ We removed an underscore from _right there_. This is because Rust uses
+    // underscores to tell the compiler "I'm intentionally not using this variable".
+    // And before we were not using `_request`. But now we are. So we rename it to
+    // just plain old `request`.
+
+    // The first thing we need to do is find out what file was requested.
+    // There are a few ways we could get this information... but the easiest one is to
+    // look at the `X-CGI-Path-Info` header that is set by the `cgi` module we are using:
+    let path_info = match request.headers().get("X-CGI-Path-Info") {
+        // If you are new to Rust, this part might feel weird. Here's what's going on:
+        // The `match` statement works kind of like a switch statement in other languages.
+        // But we can do some more sophisticated things with it. In this case, we are
+        // saying:
+        // - If our call to get() returns some header value, then that's our path.
+        // - If get() did not find an X-CGI-Path-Info value, then we'll go with the
+        //   default index. (Because the only case where Path Info is not set is
+        //   if the route in `modules.toml` is `/` instead of `/...`)
+        Some(header) => {
+            let path = header.to_str()?;
+
+            // We have one special case to handle: If the URL goes to the root, we need
+            // to know which file to load. In that case, we use DEFAULT_INDEX, which
+            // we defined at the top of this file.
+            if path == "/" {
+                DEFAULT_INDEX
+            } else {
+                path
+            }
+        }
+        None => "/index",
+    };
+
+    // This is the easiest way to log a message to our error log:
+    eprintln!("Access {}", path_info);
+
+    // So what we're going to do is convert from the inbound path to a file by the same
+    // name that ends with `.md`. So `/index` becomes `/index.md`. Then we look up
+    // on the filesystem. Now, the only files on Wagi's filesystem are the ones in our
+    // volume, which means only the stuff in `content/`. So that makes this method
+    // relatively safe. Nobody can break out of the path and somehow access other files.
+    let markdown_text = std::fs::read_to_string(format!("{}.md", path_info))?;
+
+    // The rest of this is the same as the previous version.
     let title = "Hello World!";
-
-    // If you get stuck on file loading, try this:
-    // let markdown_text = "# Hello there\nIt is so nice to see you".to_string();
-
-    // Now we are going to read the content of the `index.md` file into a string.
-    // Remember that `volume` thing we did in `modules.toml`? It mapped all the stuff
-    // in our local `content/` directory into the `/` directory. So for us,
-    // `content/index.md` is available as `/index.md`.
-    let markdown_text = std::fs::read_to_string("/index.md")?;
-    // Hey, see that little '?' at the end of the line?                ^^^
-    // That tells Rust that if it encounters an error reading the file, it should
-    // just bail out of `exec` and return an error to `cgi_try_main`. And then
-    // `cgi_try_main` will capture the error, log it, and send back an error message
-    // to the browser.
-
-    // Using the `markdown` library we installed, we can render the content of `index.md`
-    // into HTML.
     let body = markdown::to_html(&markdown_text);
-
-    // The markdown generator does not do the basic high-level formatting like the body
-    // and head tags. Fortunately, we already have our HTML formatter that we can
-    // reuse here.
     let doc = html_format(title, &body);
-
-    // And once again, we send the entire thing back to the browser in an HTTP response.
     Ok(html_response(200, doc))
 }
 
