@@ -1,30 +1,29 @@
-# The Wagi Codewalk
+# Chapter 1: Configure
 
-**Don't Panic!** This seemingly empty repo is the beginning of your journey for learning Wagi.
-Over the course of this codewalk, you will build a simple web application with
-Wagi, Rust, and WebAssembly.
+On our codewalk, we are going to build a simple microblog that runs in Wagi. While
+you can use lots of different languages to write Wagi applications, we'll be using Rust.
+While Rust is a notoriously difficult language to learn, we're making it easier by doing
+two things:
 
-This Codewalk uses Git and GitHub to walk you through the process. At every step of
-the way, you will have code that compiles and runs. And it's as easy as `git checkout`.
+1. The code will be simple and heavily commented
+2. At any given moment in time, you can build the code straight from this git repo.
 
-Here's what we're going to do: We are going to build a small web page generator that
-converts Markdown to HTML and serves images. Groundbreaking? Nope. But it's a great
-way to get started.
+If you mess up at some point and break the code, you can always just use `git reset`
+to get back to the starting version.
 
-Here's how we're going to do it:
+## What You Need
 
-- Introduction: That's where you are now.
-- Chapter 1: Configure your environment.
-- Chapter 2: Hello World! (You knew it was coming).
-- Chapter 3: Hello CGI: A small refinement on our starting point.
-- Chapter 4: Adding Markdown support
-- Chapter 5: Serving Images
+You will need the following things to do this tutorial:
 
-## Git All The Things!
+1. You will definitely want Git. The good news is that you almost certainly have it already.
+2. [Install Rust](https://www.rust-lang.org/tools/install) <-- See? We linked you straight to the install docs!
+3. Configure the Rust compiler: `rustup target add wasm32-wasi`
+4. [Install Wagi](https://github.com/deislabs/wagi/#quickstart) (Just get to the part where you can run `wagi --help`)
 
-This codewalk uses Git to walk you through all the examples. We hope the reasons for this
-will be self-evident as you go... but for starters, you'll get examples that build
-and run at every step of the way.
+If you've gotten those for things done, _congratulations!_ We're already done with the first
+chapter.
 
-So to get started, all you need to do is `git checkout ch1-configure`. (Or if you're
-using GitHub, you can just choose the branch from the dropdown list.)
+## Take Me Forward! Take Me Back!
+
+Head to chapter 2: `git checkout ch2-hello-world`
+Return to the intro: `git checkout main`
