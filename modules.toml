@@ -1,0 +1,11 @@
+
+# The main thing we do with this file is map WebAssembly modules to HTTP paths.
+# Each mapping is done with a `[[module]]` section
+[[module]]
+# If you ran `cargo build --target wasm32-wasi`, this is where it put the binary.
+module = "target/wasm32-wasi/debug/codewalk-wagi.wasm"
+# We want this to appear at the root of Wagi's webserver.
+# So this tells Wagi that `http://localhost:3000/` should serve our app.
+# We could get daring and do something like `route = "/hello"`. Then our app would
+# be served at `http://localhost:3000/hello`. But we'll keep it simple.
+route = "/"

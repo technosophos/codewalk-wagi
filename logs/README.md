@@ -1,0 +1,1 @@
+This directory will have your logs when you run a Wagi with `--log-dir ./logs`.
