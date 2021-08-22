@@ -1,25 +1,30 @@
 use cgi::{cgi_try_main, html_response, Request, Response};
-use std::fmt::Display;
 
-// For generating a deserializer
-use serde::Deserialize;
+// Our shiny new template engine
+use handlebars::Handlebars;
 
-// This is what separates our frontmatter from our Markdown.
+// For generating a a serialize and a deserializer
+use serde::{Deserialize, Serialize};
+
 const DOC_SEPERATOR: &str = "\n---\n";
 const DEFAULT_INDEX: &str = "/index";
 
 cgi_try_main!(exec);
 
-// This struct represents our frontmatter. It is decorated with `#[derive(Deserialize)]`
-// to tell the Rust compiler that we want to deserialze our TOML frontmatter. The compiler
-// then automatically generates the deserializer for us.
-#[derive(Deserialize)]
+#[derive(Deserialize, Serialize)]
 struct Frontmatter {
-    // Title is required. How do we know? It's type is `String`.
     title: String,
-    // What if we wanted to add a description field? It would look something
-    // like this. To make it optional, we use `Option<String>`.
     description: Option<String>,
+}
+
+// This new struct describes all of the stuff that we want to be able to send into
+// the handlebars template.
+//
+// We want all of the stuff from `Frontmatter`. We also want the `body`.
+#[derive(Serialize)]
+struct TemplateValues {
+    frontmatter: Frontmatter,
+    body: String,
 }
 
 fn exec(request: Request) -> anyhow::Result<Response> {
@@ -40,48 +45,68 @@ fn exec(request: Request) -> anyhow::Result<Response> {
 
     match std::fs::read_to_string(format!("{}.md", path_info)) {
         Ok(full_document) => {
-            // This is going to take `full_document`, split it into two objects at
-            // the `---`, and assign those to `toml_text` and `markdown_text`.
-            // But wait... what if we have old Markdown that doesn't have
-            // any frontmatter? Well then... we just fake some TOML data and
-            // pass the entire document into the `markdown_text`.
             let (toml_text, markdown_text) = full_document
                 .split_once(DOC_SEPERATOR)
                 .unwrap_or(("title = 'Untitled'", &full_document));
-
-            // Now we need to parse the TOML into a `Frontmatter` object.
-            // If the TOML document is malformed, this will send an Err()
-            // result, which will result in a 500 error. That is probably the right
-            // thing to do in this case.
             let frontmatter: Frontmatter = toml::from_str(toml_text)?;
 
-            // Set the title using the value in the frontmatter.
-            let title = frontmatter.title;
+            // We are going to pass some TemplateValues as structured data to the
+            // template engine.
+            let values = TemplateValues {
+                // We already built the frontmatter
+                frontmatter,
+                // We do need to render the markdown into HTML, and then set the body
+                // to this value.
+                body: markdown::to_html(&markdown_text),
+            };
 
-            // From here on out, everything else is the same!
-            let body = markdown::to_html(&markdown_text);
-            let doc = html_format(title, body);
+            // If the template rendering fails, this will return an Err(),
+            // which will result in an 500 error.
+            let doc = render_template(values)?;
+
+            // If all goes well, we just send back a response.
             Ok(html_response(200, doc))
         }
         Err(_) => {
-            let body = html_format("Not Found", "The requested page was not found.");
+            // We should be good citizens and also support templates for errors. That
+            // way, if an unfortunate user gets an error, at least it will be a pretty
+            // error.
+            //
+            // Unfortunately, we do have to convert all of our &str to String as we go
+            // here. That's why we have all of these `to_string()` calls.
+            let values = TemplateValues {
+                frontmatter: Frontmatter {
+                    title: "Not Found".to_string(),
+                    description: Some("Resource was not found on the server".to_string()),
+                },
+                body: "The requested page was not found.".to_string(),
+            };
+
+            // Somewhat ironically, rendering a 404 can cause a 500.
+            let body = render_template(values)?;
             Ok(html_response(404, body))
         }
     }
 }
 
-fn html_format<I: Display>(title: I, body: I) -> String {
-    format!(
-        r#"
-        <html>
-            <head>
-                <title>{}</title>
-            </head>
-            <body>
-                {}
-            </body>
-        </html>
-        "#,
-        title, body
-    )
+// We have replaced html_format() with render_template().
+// This new function takes some template values, and tries to render them
+// through the MAIN_TEMPLATE, and then return a String.
+//
+// If it can't load the main template, or if the template can't be rendered,
+// this will return an error.
+fn render_template(values: TemplateValues) -> anyhow::Result<String> {
+    // Handlebars works on JSON data.
+    let json_values = serde_json::json!(values);
+
+    // Create a new template engine and render our values into the newly loaded template.
+    let mut handlebars = Handlebars::new();
+    // Ask Handlebars to load the main template for us
+    handlebars.register_template_file("main", "/templates/main.hbs")?;
+
+    // Now we can render a oour values through the template. If this failes, an Err()
+    // will be returned, which will result in a 500 Internal Server Error.
+    let out = handlebars.render("main", &json_values)?;
+    // If it succeeds, we'll send back the output.
+    Ok(out)
 }

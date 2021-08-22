@@ -1,46 +1,48 @@
-# Chapter 7: Handling Errors
+# Chapter 8: Adding Handlebars Templates
 
-Popular static site generators like Jekyll, Middleman, and Hugo have made popular the
-concept of embedding "frontmatter" at the top of a Markdown document. This frontmatter
-provides data about the document, and provides it in a format that the system can
-programmatically use.
+The [Handlebars](https://handlebarsjs.com/) template language is a broadly used format
+for declaring HTML templates. In this chapter, we add support for Handlebars. When
+it comes to actually doing the rendering, we are going to use the Rust `handlebars`
+library. Since this requires JSON support, we have added some libraries for that as well.
 
-In this chapter, we add support for setting some simple frontmatter like `title`.
-It will look like this:
+Take a quick glance at `Cargo.toml` to see those new libraries.
 
-```markdown
-title = "Some Title"
----
-This is the document
-```
+## Show me the templates!
 
-Everything above the first `---` is frontmatter. Go ahead and take a look at the files in
-`content/` to see examples.
+We've added a new directory called `templates/`, and we've added a single template
+already. Take a look. It's pretty basic. Feel free to try out some edits.
 
-## More libraries!
+### Template development
 
-We need to add a few new libraries to work with frontmatter. Our frontmatter is going to
-follow the [TOML format](https://toml.io/en/). And we need to be able to deserialize
-TOML documents. That's why we added a few libraries to our `Cargo.toml` (which, of course,
-is also written in TOML).
+If you are tinkering with templates, go ahead and start up the Wagi server. Your templates
+will reload with each request. This is due to the way Wagi works. It does not automatically
+cache every page load.
 
-## Code changes
+## Another volume in `modules.toml`
 
-Check out `src/main.rs` for the new code, which splits each Markdown file into two parts:
-the frontmatter and the body.
+Our Rust code now needs access to the `templates/` directory. So we have added a new
+volume mounting in the `modules.toml` file.
 
-- It parses the frontmatter into data that can be used by the program
-- It passes the Markdown into the renderer
-- Then all of that data is used to generate the final HTML page
+With this new mounting, the template files will be available in `templates/*` inside of the
+Rust code.
 
-Once you've looked at these, build and run the server and test it out. You can even
-try out `http://localhost:3000/legacy` and see how it handles a Markdown document that
-is missing its frontmatter.
+## The big refactoring
 
-Hey, know what would be cool to fix now? How about if we add real template support so
-that we can define some prettier HTML?
+Okay, now we have a large (in terms of line count) refactor in the code. Namely, we will
+remove that big `format!()` function that we've been using since Chapter 3, and we'll
+replace it the Handlebars template renderer.
+
+At this point, it makes sense to take a brief look backward and be proud of what we have
+built. Our little project now has the following features:
+
+- It creates a basic website, similar to those coming from static site generators like Jekyll
+- It can load Markdown files and render them into HTML
+- If a Markdown file has a preamble, it can use that information as well
+- With Handlebars support, our app can load and render custom templates
+- We have at least rudimentary error handling
+- ~~We can serve images~~ Looks like we have one more thing to do
 
 ## Take Me Forward! Take Me Back!
 
-Head to chapter 8: `git checkout ch8-handlebars`
+Head to chapter 9: `git checkout ch9-images`
 Return to the intro: `git checkout main`

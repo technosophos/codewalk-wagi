@@ -1,0 +1,3 @@
+# Oops...
+
+This document does not have frontmatter. Good thing we wrote extra little check.
