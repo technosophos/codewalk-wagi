@@ -1,53 +1,36 @@
-# Chapter 9: Serving Images
+# Chapter 10: Wrapping Up
 
-Well now... we have arrived at our last feature: Serving images. This can be a tricky
-bit of code. First, there's some content type negotiation. Usually, we'd have to add
-a whole lot of boilerplate content type code. And, of course there is some file I/O
-we'd need to write.
+Well, there you have it! You've built a complete application using Wagi.
+From here, you can try building your own tools. And you may want to try creating
+applications with other languages like Swift, C, or AssemblyScript.
 
-Or... we could just use an off-the-shelf image server written specifically for Wagi.
+But before you go, we wanted to offer a few parting bits of advice.
 
-And doing that will highlight one last feature of Wagi: We can run multiple modules in the
-same Wagi instance. Even third party modules.
+## Recompile your app with `--release`
 
-So in this chapter, we won't even have to touch the `main.rs`.
+All along, we have been compiling debug versions of our app. And if you take a look,
+that simple little chunk of code is a whopping 28M.
 
-## Using multiple Wasm modules
+Guess what? You can cut 25M off with one compile flag:
 
-Wagi was built with the expectation that developers would combine different WebAssembly
-modules to build applications. One of the easiest ways to do that is to direct specific
-routes to specific modules.
+```console
+$ cargo build --target wasm32-wasi --release
+```
 
-This is really interesting for a few reasons:
+Then you will need to point your `modules.toml` to the new binary. (Check out the one for
+this chapter. We already made the adjustment.) We promise: You'll notice a HUGE speedup.
+Just be warned that the compile time tends to take a little long.
 
-- We could write each endpoint handler in a different language
-- We can compose our apps from other people's modules
-- We can maintain different pieces of our app in different Git repositories
-- It is a lot easier to keep modules small and simple when we can divide the work.
-  (For example, our binary fileserver is only 198k.)
-- There are additional security benefits to separating out modules, and we'll see an example of that here.
+## Know your CGI variables
 
-In our example here, we fetched the latest version of the [Wagi fileserver](https://github.com/deislabs/wagi-fileserver). The Wagi fileserver is written in [Grain](https://grain-lang.org/)
-and supports a wide range of file types, including images.
+In our Rust code, we did something like this:
 
-The new `modules/` directory in this chapter has one module in it: `fileserver.gr.wasm`.
-That's the fileserver. To add it to our app, we add another `[[module]]` section in
-`modules.toml`. Now is a good time to go take a look.
+```rust
+request.headers().get("X-CGI-Path-Info")
+```
 
-Start up the Wagi server again, and you will 
-
-## A little bit more security
-
-The important thing you will see in the new `modules.toml` is that the new fileserver 
-mounts a volume to `images/`. Each module has its own volumes. It has access _only_ to its
-own volumes. So, for example, our fileserver does not have access to the `content/` or `templates/`
-directories that we allowed our other module to use.
-
-You can even test this theory. The fileserver module will serve up all kinds of files, not
-just images. So if we could try to type in direct paths to files under `content/` or `templates/`.
-For example, you could try `http://localhost:3000/images/templates/main.hbs`. Because the
-fileserver module's root filesystem _only_ contains the contents of `images/`, the fileserver
-will not be able to access anything else.
+There are over a dozen special headers (and environment variables) in Wagi. These mostly
+correspond to the CGI versions. The most complete list is [in the Wagi docs](https://github.com/deislabs/wagi/blob/main/docs/environment_variables.md).
 
 ## Take Me Forward! Take Me Back!
 

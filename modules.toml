@@ -11,6 +11,6 @@ route = "/images/..."
 volumes = { "/" = "images/"}
 
 [[module]]
-module = "target/wasm32-wasi/debug/codewalk-wagi.wasm"
+module = "target/wasm32-wasi/release/codewalk-wagi.wasm"
 route = "/..."
 volumes = { "/" = "content/" , "templates/" = "templates/"}
