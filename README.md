@@ -85,5 +85,5 @@ page.
 
 ## Take Me Forward! Take Me Back!
 
-Head to chapter 4: `git checkout ch6-errors`
+Head to chapter 6: `git checkout ch6-errors`
 Return to the intro: `git checkout main`
