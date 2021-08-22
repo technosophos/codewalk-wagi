@@ -7,9 +7,11 @@ Wagi, Rust, and WebAssembly.
 This Codewalk uses Git and GitHub to walk you through the process. At every step of
 the way, you will have code that compiles and runs. And it's as easy as `git checkout`.
 
-Here's what we're going to do: We are going to build a small web page generator that
-converts Markdown to HTML and serves images. Groundbreaking? Nope. But it's a great
-way to get started.
+Here's what we're going to do:
+
+>We are going to build a small web page generator that
+>converts Markdown to HTML and serves images. Groundbreaking? Nope. But it's a great
+>way to get started.
 
 Here's how we're going to do it:
 
