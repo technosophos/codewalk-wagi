@@ -14,16 +14,16 @@ way to get started.
 Here's how we're going to do it:
 
 - Introduction: That's where you are now.
-- [Chapter 1:](/technosophos/codewalk-wagi/tree/ch1-configure) Configure your environment.
-- [Chapter 2:](/technosophos/codewalk-wagi/tree/ch2-hello-world) Hello World! (You knew it was coming).
-- [Chapter 3:](/technosophos/codewalk-wagi/tree/ch3-hello-cgi) Hello CGI: A small refinement on our starting point.
-- [Chapter 4:](/technosophos/codewalk-wagi/tree/ch4-markdown) Adding Markdown support
-- [Chapter 5:](/technosophos/codewalk-wagi/tree/ch5-multi-page) Multi-page apps
-- [Chapter 6:](/technosophos/codewalk-wagi/tree/ch6-errors) Handling Errors
-- [Chapter 7:](/technosophos/codewalk-wagi/tree/ch7-frontmatter) Adding Frontmatter to Markdown
-- [Chapter 8:](/technosophos/codewalk-wagi/tree/ch8-handlebars) Handlebars templating
-- [Chapter 9:](/technosophos/codewalk-wagi/tree/ch9-images) Image handling (and multi-module apps)
-- [Chapter 10:](/technosophos/codewalk-wagi/tree/ch10-wrapping-up) Wrapping up
+- [Chapter 1:](https://github.com/technosophos/codewalk-wagi/tree/ch1-configure) Configure your environment.
+- [Chapter 2:](https://github.com/technosophos/codewalk-wagi/tree/ch2-hello-world) Hello World! (You knew it was coming).
+- [Chapter 3:](https://github.com/technosophos/codewalk-wagi/tree/ch3-hello-cgi) Hello CGI: A small refinement on our starting point.
+- [Chapter 4:](https://github.com/technosophos/codewalk-wagi/tree/ch4-markdown) Adding Markdown support
+- [Chapter 5:](https://github.com/technosophos/codewalk-wagi/tree/ch5-multi-page) Multi-page apps
+- [Chapter 6:](https://github.com/technosophos/codewalk-wagi/tree/ch6-errors) Handling Errors
+- [Chapter 7:](https://github.com/technosophos/codewalk-wagi/tree/ch7-frontmatter) Adding Frontmatter to Markdown
+- [Chapter 8:](https://github.com/technosophos/codewalk-wagi/tree/ch8-handlebars) Handlebars templating
+- [Chapter 9:](https://github.com/technosophos/codewalk-wagi/tree/ch9-images) Image handling (and multi-module apps)
+- [Chapter 10:](https://github.com/technosophos/codewalk-wagi/tree/ch10-wrapping-up) Wrapping up
 
 ## Git All The Things!
 
