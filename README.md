@@ -31,5 +31,7 @@ This codewalk uses Git to walk you through all the examples. We hope the reasons
 will be self-evident as you go... but for starters, you'll get examples that build
 and run at every step of the way.
 
-So to get started, all you need to do is `git checkout ch1-configure`. (Or if you're
+Clone this repo using `git clone https://github.com/technosophos/codewalk-wagi.git`.
+
+To get started, all you need to do is `git checkout ch1-configure`. (Or if you're
 using GitHub, you can just choose the branch from the dropdown list.)
