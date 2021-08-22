@@ -7,3 +7,7 @@ markdown format, we recommend checking out GitHub's excellent
 [Mastering Markdown Guide](https://guides.github.com/features/mastering-markdown/).
 
 To learn more, visit our [About Us](/about) page.
+
+# We do like our coffee
+
+Check out our [Coffee](/coffee) page.

@@ -1,10 +1,16 @@
+# This is our new fileserver module. Note that we need to add it first because
+# if we don't the `/...` rule for the other module will match before the 
+# '/images/...' rule gets evaluated.
+#
+# Note that we are mapping the `images/` directory as a volume for our Wagi instance.
+# We intentionally map it to `/` because we don't want the URL to be
+# /images/images/foo.gif, but just /images/foo.gif
+[[module]]
+module = "modules/fileserver.gr.wasm"
+route = "/images/..."
+volumes = { "/" = "images/"}
+
 [[module]]
 module = "target/wasm32-wasi/debug/codewalk-wagi.wasm"
 route = "/..."
-
-# We also need to load `templates/` into the Wagi instance so that the
-# template renderer can do its thing.
-#
-# With content, we mapped `content` to `/`. But with `templates/`,
-# we have kept the name the same.
 volumes = { "/" = "content/" , "templates/" = "templates/"}
