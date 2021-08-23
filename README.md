@@ -32,7 +32,25 @@ request.headers().get("X-CGI-Path-Info")
 There are over a dozen special headers (and environment variables) in Wagi. These mostly
 correspond to the CGI versions. The most complete list is [in the Wagi docs](https://github.com/deislabs/wagi/blob/main/docs/environment_variables.md).
 
-## Take Me Forward! Take Me Back!
+## The Limits of Wasm and WASI
 
-Head to chapter 10: `git checkout ch10-wrapping-up`
+In this tutorial, we have been building WebAssembly modules to run in Wagi.
+And we have been compiling to the target Wasm32-WASI. That "WASI" part is important.
+It stands for "WebAssembly System Interface", and it is composed of the supporting
+libraries that make it possible to use WebAssembly to access the filesystem, use
+environment variables, use STDIN/STDOUT, and other similar systems-level interactions.
+But WASI does not support all of the things that a low-level systems environment typically
+does. Part of this is for security reasons and part of it is because WASI itself is not
+done yet. But it does mean that your applications can't do certain things yet:
+
+- They cannot be multi-threaded
+- They cannot start network servers
+- They cannot access system hardware devices
+
+And there are other similar things that they are currently prevented from doing.
+
+## ~~Take Me Forward!~~ Take Me Back!
+
+You've reached the end of the tutorial! Congratulations, and happy coding!
+
 Return to the intro: `git checkout main`
